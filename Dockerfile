@@ -12,5 +12,5 @@ RUN mkdir /work/
 ADD res/ /work/
 WORKDIR /work
 RUN git clone https://github.com/jcausey-astate/grt123-DSB2017.git grt123-DSB2017
-#RUN git checkout d5ed68ecd5bd5bd4e8fcb7ffae89a490d6ce4a69
+RUN git -C grt123-DSB2017 checkout d5ed68ecd5bd5bd4e8fcb7ffae89a490d6ce4a69
 RUN bash patch/patch.sh
