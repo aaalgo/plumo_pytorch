@@ -10,6 +10,7 @@ python papaya.py
 
 chmod -R a+rw grt123-DSB2017/prep_result/*
 chmod -R a+rw grt123-DSB2017/bbox_result/*
+chmod -R a+rw /output/boxes
 chmod -R a+rw /output/papaya*
 chmod -R a+rw /output/preview
 

@@ -103,53 +103,54 @@ def papaya(samples = ['126823']):
         try:
             pbb = np.load('grt123-DSB2017/bbox_result/%s_pbb.npy' % sample)
             pbb = np.asarray(pbb, np.float32)
+            pbb_original = pbb[:]
             vol = np.load('grt123-DSB2017/prep_result/%s_clean.npy' % sample)
             meta = pickle.load(open('grt123-DSB2017/prep_result/'+sample+'.pickle', 'rb'))
         except:
             continue
         
-        #ii_list = [np.argmax(pbb[:, 0])]
-        #print(np.max(pbb[:,0]))
         pbb = nms(pbb, 0.4)
         ii_list = pbb[:, 0].argsort()[-5:][::-1]
 
-        extendbox = meta['extendbox']
-        resolution = meta['resolution']
-        spacing = meta['spacing']
-        mask_shape = meta['mask_shape']
+        extendbox = meta['extendbox']; resolution = meta['resolution']; spacing = meta['spacing']; mask_shape = meta['mask_shape']
 
         vol = vol[0]
-        boxes = []
+        boxes = []; output_dic = {}
         anno = Annotations()
         for index, ii in enumerate(ii_list):
             p, z, y, x, r = pbb[ii,:]
             if index == 0:
                 gal.text('case %s' % sample)
-                #gal.next(text='chicken', link='/output/papaya_%s/index.html' % sample)
                 cv2.imwrite(gal.next(), draw_bb(vol[int(round(z)), :, :], y, x, r))
                 cv2.imwrite(gal.next(), draw_bb(vol[:,int(round(y)),:], z, x, r))
                 cv2.imwrite(gal.next(), draw_bb(vol[:, :, int(round(x))], z, y, r))
-
 
             dicom_z = mask_shape[0] - int(round((z + extendbox[0][0] -r/2) * resolution[0] / spacing[0]))
             dicom_y = int(round((y + extendbox[1][0] -r/2) * resolution[1] / spacing[1]))
             dicom_x = mask_shape[2] - int(round((x + extendbox[2][0] +r/2) * resolution[2] / spacing[2]))
             dicom_r_xy = int(round(r * resolution[1] / spacing[1]))
             dicom_r_z = int(round(r * resolution[0] /spacing[0]))
-    
             dicom_z = max(dicom_z, 0) 
             box = [max(dicom_z-dicom_r_z, 0), dicom_y, dicom_x, dicom_z , dicom_y + dicom_r_xy, dicom_x+dicom_r_xy]
             anno.add(box=box, hint='Blob %d: %.3f'%(index+1, p))
 
+            dicom_z_to_save = int(round((z + extendbox[0][0] -r/2) * resolution[0] / spacing[0]))
+            dicom_y_to_save = int(round((y + extendbox[1][0] -r/2) * resolution[1] / spacing[1]))
+            dicom_x_to_save = int(round((x + extendbox[2][0] -r/2) * resolution[2] / spacing[2]))
+            box_to_save = [dicom_z_to_save, dicom_y_to_save, dicom_x_to_save, dicom_z_to_save+dicom_r_z, dicom_y_to_save+dicom_r_xy, dicom_x_to_save+dicom_r_xy]
+            output_dic[str(p)] = box_to_save
+
         papaya = Papaya('/output/papaya_' + sample, case_path = dicom_path + sample, annotations=anno)
+        pickle.dump(output_dic, open('/output/boxes/%s.pickle'%sample,'wb'))
     gal.flush()
     return
 
 if __name__ == '__main__':
     with open('grt123-DSB2017/prep_result/list') as Data:
+        os.mkdir(os.path.join('/output/boxes'))
         samples = Data.readlines()
         samples = [x.strip() for x in samples]
         papaya(samples)
-    # Two notes:
+    # Notes:
     # 1. cooridinates used in papaya reverses x-axis and z-axis
-    # 2. there is a shift on z-axis, therefore adjusted by 3
+    # 2. there may be a shift on z-axis, depending on how dicom files are sorted
