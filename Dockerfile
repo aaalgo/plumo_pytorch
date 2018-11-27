@@ -5,7 +5,7 @@ RUN pip install numpy pandas
 RUN pip install cython==0.23 nvidia-ml-py==7.352.0 
 RUN pip install scipy==0.18.1 nose pyparsing==2.1.4 scikit-image==0.12.3
 RUN pip install http://download.pytorch.org/whl/cu80/torch-0.1.11.post5-cp27-none-linux_x86_64.whl
-RUN pip install dicom jinja2 
+RUN pip install pydicom==1.0.2 jinja2 
 RUN pip install --upgrade pip
 RUN pip install opencv-python
 RUN mkdir /work/

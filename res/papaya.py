@@ -6,7 +6,7 @@ import subprocess
 from glob import glob
 from jinja2 import Environment, FileSystemLoader
 import numpy as np
-import dicom as pydicom
+import pydicom
 import os
 import pickle
 import cv2
